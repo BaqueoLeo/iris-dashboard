@@ -1,1 +1,35 @@
-[]
+[
+  {
+    "title": "Tareas universitarias - Saint Leo University (obligatorias)",
+    "created": "2026-05-07T04:42:00Z",
+    "deadline": "2026-05-07",
+    "priority": "high",
+    "source": "manual",
+    "status": "pend",
+    "done": false,
+    "assigned": "Leo",
+    "context": "Leo reporto que hoy tiene tareas obligatorias de la universidad. Pendiente desde 2 meses, alta presion."
+  },
+  {
+    "title": "Arreglar / limpiar la casa (Airbnb Playas)",
+    "created": "2026-05-07T04:42:00Z",
+    "deadline": "2026-05-07",
+    "priority": "med",
+    "source": "manual",
+    "status": "pend",
+    "done": false,
+    "assigned": "Leo",
+    "context": "Leo menciono que necesita arreglar la casa hoy. Propiedad del padre, Airbnb en Playas."
+  },
+  {
+    "title": "Salir de casa a las 15:00 (GMT-5 Ecuador)",
+    "created": "2026-05-07T04:42:00Z",
+    "deadline": "2026-05-07",
+    "priority": "high",
+    "source": "manual",
+    "status": "pend",
+    "done": false,
+    "assigned": "Leo",
+    "context": "Leo debe salir de la casa a las 3 PM hora Ecuador. Recordar 30 min antes."
+  }
+]
