@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IRIS · Control Panel</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+:root {
+  --bg:#0a0a0c; --panel:#111116; --border:#1e1e28;
+  --gold:#d4a843; --gold-dim:#8a6a20; --gold-glow:rgba(212,168,67,0.08);
+  --red:#e05555; --green:#4ecb71; --blue:#5b8def; --orange:#f0a030; --purple:#a855f7;
+  --text:#c8c8d8; --muted:#555568; --accent:#1a1a22;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{background:var(--bg);color:var(--text);font-family:'Space Mono',monospace;min-height:100vh;padding:20px;font-size:11px;}
+
+/* HEADER */
+.header{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:24px;padding-bottom:14px;border-bottom:1px solid var(--border);}
+.header-left{}
+.title{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:var(--gold);letter-spacing:-1px;}
+.sub{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:3px;margin-top:3px;}
+.header-right{text-align:right;}
+.status-line{display:flex;gap:8px;align-items:center;justify-content:flex-end;margin-bottom:4px;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+.status-label{font-size:8px;color:var(--muted);text-transform:uppercase;letter-spacing:2px;}
+.last-sync{font-size:8px;color:var(--muted);}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:1300px;margin:0 auto;}
+@media(max-width:900px){.grid{grid-template-columns:1fr;}}
+
+/* PANEL BASE */
+.panel{background:var(--panel);border:1px solid var(--border);border-radius:8px;padding:16px;position:relative;overflow:hidden;}
+.panel::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--gold-dim),var(--gold),var(--gold-dim));opacity:0.3;}
+
+.panel-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.panel-title{font-family:'Syne',sans-serif;font-size:10px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:2px;}
+.panel-count{font-size:8px;color:var(--muted);background:var(--accent);padding:2px 8px;border-radius:4px;}
+.panel-actions{display:flex;gap:6px;}
+
+/* TASKS */
+.task-list{max-height:55vh;overflow-y:auto;}
+.task-list::-webkit-scrollbar{width:3px;}
+.task-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+.task{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);transition:all 0.3s;}
+.task:last-child{border-bottom:none;}
+.task:hover{background:rgba(212,168,67,0.02);}
+
+.task-col{display:flex;flex-direction:column;align-items:center;gap:4px;}
+.task-check{width:14px;height:14px;border:1.5px solid var(--muted);border-radius:3px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all 0.2s;}
+.task-check:hover{border-color:var(--gold);}
+.task.done .task-check{background:var(--green);border-color:var(--green);}
+.task.done .task-check::after{content:'';display:block;width:6px;height:3px;border-left:1.5px solid var(--bg);border-bottom:1.5px solid var(--bg);transform:rotate(-45deg) translateY(-1px);}
+
+.task-status{font-size:7px;padding:1px 4px;border-radius:2px;text-transform:uppercase;letter-spacing:1px;}
+.status-pend{background:rgba(240,160,48,0.1);color:var(--orange);}
+.status-prog{background:rgba(91,141,239,0.1);color:var(--blue);}
+.status-block{background:rgba(224,85,85,0.1);color:var(--red);}
+.status-done{background:rgba(78,203,113,0.1);color:var(--green);}
+
+.task-body{flex:1;min-width:0;}
+.task-title{font-size:10px;color:var(--text);line-height:1.5;margin-bottom:3px;word-break:break-word;}
+.task.done .task-title{text-decoration:line-through;opacity:0.5;}
+.task-meta{display:flex;gap:10px;flex-wrap:wrap;font-size:7px;color:var(--muted);}
+.task-meta span{display:flex;align-items:center;gap:3px;}
+.task-priority{width:3px;height:3px;border-radius:50%;display:inline-block;margin-right:3px;}
+.p-high{background:var(--red);box-shadow:0 0 4px var(--red);}
+.p-med{background:var(--orange);}
+.p-low{background:var(--green);}
+
+.task-source{font-size:7px;color:var(--gold-dim);background:var(--accent);padding:1px 5px;border-radius:2px;}
+.task-deadline{font-size:7px;}
+.task-deadline.overdue{color:var(--red);}
+.task-deadline.today{color:var(--gold);}
+.task-deadline.soon{color:var(--orange);}
+
+/* RESEARCH */
+.research-list{max-height:55vh;overflow-y:auto;}
+.research-list::-webkit-scrollbar{width:3px;}
+.research-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+
+.research-card{padding:12px;background:var(--accent);border-radius:6px;margin-bottom:8px;border-left:2px solid var(--gold-dim);transition:all 0.2s;}
+.research-card:hover{border-left-color:var(--gold);}
+.research-card.resolved{opacity:0.4;border-left-color:var(--green);}
+.research-card.blocked{border-left-color:var(--red);}
+
+.rc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.rc-tag{font-size:7px;color:var(--gold);text-transform:uppercase;letter-spacing:1.5px;}
+.rc-status{font-size:7px;padding:2px 6px;border-radius:2px;}
+.rc-status.investigando{background:rgba(91,141,239,0.1);color:var(--blue);}
+.rc-status.solucion{background:rgba(168,85,247,0.1);color:var(--purple);}
+.rc-status.esperando{background:rgba(240,160,48,0.1);color:var(--orange);}
+.rc-status.cerrado{background:rgba(78,203,113,0.1);color:var(--green);}
+
+.rc-title{font-size:10px;color:var(--text);font-weight:700;margin-bottom:6px;line-height:1.4;}
+.rc-body{font-size:9px;color:var(--muted);line-height:1.7;margin-bottom:6px;white-space:pre-wrap;}
+.rc-proposal{padding:8px;background:rgba(212,168,67,0.04);border:1px solid var(--border);border-radius:4px;margin-top:6px;}
+.rc-proposal-label{font-size:7px;color:var(--gold);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:3px;}
+.rc-proposal-body{font-size:9px;color:var(--text);line-height:1.6;}
+.rc-footer{display:flex;gap:10px;font-size:7px;color:var(--muted);margin-top:8px;}
+
+/* MEMORY */
+.memory-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.memory-card{padding:10px;background:var(--accent);border-radius:5px;border-top:2px solid var(--border);transition:all 0.2s;}
+.memory-card:hover{border-top-color:var(--gold);}
+.memory-tag{font-size:7px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px;}
+.memory-body{font-size:9px;color:var(--text);line-height:1.5;}
+.memory-time{font-size:7px;color:var(--muted);margin-top:6px;}
+
+/* SYSTEMS */
+.system-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;}
+.sys-card{padding:10px;background:var(--accent);border-radius:5px;display:flex;align-items:center;gap:10px;}
+.sys-indicator{width:6px;height:6px;border-radius:50%;flex-shrink:0;}
+.sys-indicator.ok{background:var(--green);box-shadow:0 0 6px var(--green);}
+.sys-indicator.warn{background:var(--orange);box-shadow:0 0 6px var(--orange);}
+.sys-indicator.err{background:var(--red);box-shadow:0 0 6px var(--red);}
+.sys-info{flex:1;}
+.sys-name{font-size:9px;color:var(--text);font-weight:700;}
+.sys-detail{font-size:7px;color:var(--muted);margin-top:1px;}
+.sys-last{font-size:7px;color:var(--muted);text-align:right;}
+
+/* INPUT AREA */
+.input-area{margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.input-row{display:flex;gap:8px;margin-bottom:8px;}
+.input-field{flex:1;background:var(--accent);border:1px solid var(--border);border-radius:4px;padding:8px 10px;color:var(--text);font-family:'Space Mono',monospace;font-size:9px;outline:none;}
+.input-field:focus{border-color:var(--gold-dim);}
+.input-field::placeholder{color:var(--muted);}
+select.input-field{flex:0 0 100px;cursor:pointer;}
+textarea.input-field{min-height:60px;resize:vertical;}
+
+.btn{background:var(--gold);color:var(--bg);border:none;border-radius:4px;padding:6px 14px;font-family:'Syne',sans-serif;font-size:8px;font-weight:600;cursor:pointer;letter-spacing:1px;text-transform:uppercase;}
+.btn:hover{background:var(--gold-dim);}
+.btn-sm{padding:4px 10px;font-size:7px;}
+.btn-secondary{background:var(--accent);color:var(--text);border:1px solid var(--border);}
+.btn-secondary:hover{background:var(--border);}
+
+/* EMPTY */
+.empty{text-align:center;padding:24px;color:var(--muted);font-size:9px;}
+
+/* FOOTER */
+.footer{margin-top:20px;text-align:center;font-size:7px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <div class="title">IRIS</div>
+    <div class="sub">Control Panel · Gestion Operativa</div>
+  </div>
+  <div class="header-right">
+    <div class="status-line">
+      <div class="status-dot"></div>
+      <span class="status-label">Autonomo</span>
+    </div>
+    <div class="last-sync" id="last-sync">Sincronizacion: —</div>
+  </div>
+</div>
+
+<div class="grid">
+
+  <!-- TASKS -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Tareas de Leo</span>
+      <span class="panel-count" id="task-count">0</span>
+    </div>
+    <div class="task-list" id="task-list"></div>
+    
+    <div class="input-area">
+      <div class="input-row">
+        <input type="text" class="input-field" id="new-task-title" placeholder="Nueva tarea detectada...">
+        <select class="input-field" id="new-task-priority">
+          <option value="high">Alta</option>
+          <option value="med" selected>Media</option>
+          <option value="low">Baja</option>
+        </select>
+      </div>
+      <div class="input-row">
+        <input type="date" class="input-field" id="new-task-deadline" style="flex:0 0 120px;">
+        <select class="input-field" id="new-task-source">
+          <option value="auto">Auto-detectada</option>
+          <option value="manual">Manual</option>
+          <option value="heartbeat">Heartbeat</option>
+        </select>
+        <button class="btn btn-sm" onclick="addTask()">+ Registrar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- RESEARCH -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Investigacion en Curso</span>
+      <span class="panel-count" id="research-count">0</span>
+    </div>
+    <div class="research-list" id="research-list"></div>
+    
+    <div class="input-area">
+      <input type="text" class="input-field" id="new-research-title" placeholder="Tema a investigar...">
+      <textarea class="input-field" id="new-research-body" placeholder="Hallazgos, contexto, datos relevantes..."></textarea>
+      <div class="input-row">
+        <select class="input-field" id="new-research-status">
+          <option value="investigando">Investigando</option>
+          <option value="solucion">Propuesta de Solucion</option>
+          <option value="esperando">Esperando Feedback</option>
+        </select>
+        <button class="btn btn-sm" onclick="addResearch()">Guardar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MEMORY -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Memoria Corto Plazo</span>
+      <span class="panel-count" id="memory-count">0</span>
+    </div>
+    <div class="memory-grid" id="memory-grid"></div>
+    
+    <div class="input-area">
+      <div class="input-row">
+        <input type="text" class="input-field" id="new-memory-tag" placeholder="tag (urgente, recordar, contexto...)" style="flex:0 0 140px;">
+        <input type="text" class="input-field" id="new-memory-body" placeholder="Nota rapida para recordar entre sesiones...">
+        <button class="btn btn-sm" onclick="addMemory()">+</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SYSTEMS -->
+  <div class="panel">
+    <div class="panel-header">
+      <span class="panel-title">Estado de Sistemas</span>
+      <span class="panel-count" id="system-count">0</span>
+    </div>
+    <div class="system-grid" id="system-grid"></div>
+  </div>
+
+</div>
+
+<div class="footer" id="footer">Esperando latido...</div>
+
+<script>
+const TASKS_KEY = 'iris_cp_tasks_v1';
+const RESEARCH_KEY = 'iris_cp_research_v1';
+const MEMORY_KEY = 'iris_cp_memory_v1';
+const SYSTEMS_KEY = 'iris_cp_systems_v1';
+
+// Default systems
+const DEFAULT_SYSTEMS = [
+  {name:'Gold-Swing',detail:'Dashboard de trading multi-par',status:'ok',last:''},
+  {name:'Email-Gmail',detail:'ebagueo@gmail.com',status:'ok',last:''},
+  {name:'Email-iCloud',detail:'ebagueo@icloud.com',status:'ok',last:''},
+  {name:'Calendar',detail:'Eventos proximos 48h',status:'ok',last:''},
+  {name:'Heartbeat',detail:'Checks cada 45 min',status:'ok',last:''},
+  {name:'Cron-Jobs',detail:'Tareas programadas',status:'ok',last:''}
+];
+
+function load(key, fallback){ return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback || [])); }
+function save(key, data){ localStorage.setItem(key, JSON.stringify(data)); }
+
+function formatDate(iso){
+  if(!iso) return '—';
+  const d = new Date(iso);
+  return d.toLocaleDateString('es-EC',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
+}
+
+function timeAgo(iso){
+  if(!iso) return '';
+  const diff = Math.floor((Date.now() - new Date(iso)) / (1000*60));
+  if(diff < 1) return 'ahora';
+  if(diff < 60) return diff + 'm';
+  if(diff < 1440) return Math.floor(diff/60) + 'h';
+  return Math.floor(diff/1440) + 'd';
+}
+
+function daysUntil(deadline){
+  if(!deadline) return null;
+  const d = Math.ceil((new Date(deadline) - Date.now()) / (1000*60*60*24));
+  if(d < 0) return {text:'vencida',cls:'overdue'};
+  if(d === 0) return {text:'hoy',cls:'today'};
+  if(d <= 3) return {text:d+'d',cls:'soon'};
+  return {text:d+'d',cls:''};
+}
+
+function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// === RENDER ===
+function render(){
+  const tasks = load(TASKS_KEY);
+  const research = load(RESEARCH_KEY);
+  const memory = load(MEMORY_KEY);
+  let systems = load(SYSTEMS_KEY);
+  if(!systems.length) systems = DEFAULT_SYSTEMS;
+  
+  // Tasks
+  const tList = document.getElementById('task-list');
+  const active = tasks.filter(t=>!t.done);
+  document.getElementById('task-count').textContent = active.length + ' activas / ' + tasks.length + ' total';
+  
+  if(!tasks.length){
+    tList.innerHTML = '<div class="empty">Sin tareas registradas. Agrega una o espera deteccion automatica.</div>';
+  } else {
+    tList.innerHTML = tasks.map((t,i)=>{
+      const dl = daysUntil(t.deadline);
+      return `<div class="task ${t.done?'done':''}">
+        <div class="task-col">
+          <div class="task-check" onclick="toggleTask(${i})"></div>
+          <span class="task-status status-${t.status||'pend'}">${t.status||'pend'}</span>
+        </div>
+        <div class="task-body">
+          <div class="task-title"><span class="task-priority p-${t.priority}"></span>${escapeHtml(t.title)}</div>
+          <div class="task-meta">
+            <span>creado ${formatDate(t.created).split(' ')[0]}</span>
+            <span class="task-source">${t.source||'auto'}</span>
+            ${dl ? `<span class="task-deadline ${dl.cls}">${dl.text}</span>` : ''}
+            ${t.assigned ? `<span>asignado: ${t.assigned}</span>` : ''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  
+  // Research
+  const rList = document.getElementById('research-list');
+  document.getElementById('research-count').textContent = research.length;
+  if(!research.length){
+    rList.innerHTML = '<div class="empty">Sin investigaciones activas. Agrega un tema.</div>';
+  } else {
+    rList.innerHTML = research.slice().reverse().map((r,i)=>{
+      const idx = research.length - 1 - i;
+      return `<div class="research-card ${r.status==='cerrado'?'resolved':r.status==='esperando'?'blocked':''}">
+        <div class="rc-header">
+          <span class="rc-tag">${r.tag||'investigacion'}</span>
+          <span class="rc-status ${r.status}">${r.status}</span>
+        </div>
+        <div class="rc-title">${escapeHtml(r.title)}</div>
+        <div class="rc-body">${escapeHtml(r.body)}</div>
+        ${r.proposal ? `<div class="rc-proposal">
+          <div class="rc-proposal-label">Propuesta</div>
+          <div class="rc-proposal-body">${escapeHtml(r.proposal)}</div>
+        </div>` : ''}
+        <div class="rc-footer">
+          <span>${formatDate(r.created)}</span>
+          <span>actualizado ${timeAgo(r.updated)}</span>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  
+  // Memory
+  const mGrid = document.getElementById('memory-grid');
+  document.getElementById('memory-count').textContent = memory.length;
+  if(!memory.length){
+    mGrid.innerHTML = '<div class="empty" style="grid-column:1/-1;">Sin notas de memoria.</div>';
+  } else {
+    mGrid.innerHTML = memory.slice().reverse().slice(0,6).map(n=>`
+      <div class="memory-card">
+        <div class="memory-tag">${n.tag}</div>
+        <div class="memory-body">${escapeHtml(n.body)}</div>
+        <div class="memory-time">${timeAgo(n.created)}</div>
+      </div>
+    `).join('');
+  }
+  
+  // Systems
+  const sGrid = document.getElementById('system-grid');
+  document.getElementById('system-count').textContent = systems.filter(s=>s.status==='ok').length + '/6 online';
+  sGrid.innerHTML = systems.map(s=>`
+    <div class="sys-card">
+      <div class="sys-indicator ${s.status}"></div>
+      <div class="sys-info">
+        <div class="sys-name">${s.name}</div>
+        <div class="sys-detail">${s.detail}</div>
+      </div>
+      <div class="sys-last">${s.last ? timeAgo(s.last) : 'nunca'}</div>
+    </div>
+  `).join('');
+  
+  document.getElementById('last-sync').textContent = 'Sincronizacion: ' + new Date().toLocaleTimeString('es-EC',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('footer').textContent = 'Ultimo latido: ' + formatDate(new Date().toISOString());
+}
+
+// === ACTIONS ===
+function addTask(){
+  const title = document.getElementById('new-task-title').value.trim();
+  if(!title) return;
+  const tasks = load(TASKS_KEY);
+  tasks.push({
+    title, created: new Date().toISOString(),
+    deadline: document.getElementById('new-task-deadline').value || null,
+    priority: document.getElementById('new-task-priority').value,
+    source: document.getElementById('new-task-source').value,
+    status: 'pend', done: false
+  });
+  save(TASKS_KEY, tasks);
+  document.getElementById('new-task-title').value = '';
+  document.getElementById('new-task-deadline').value = '';
+  render();
+}
+
+function toggleTask(i){
+  const tasks = load(TASKS_KEY);
+  tasks[i].done = !tasks[i].done;
+  tasks[i].status = tasks[i].done ? 'done' : 'pend';
+  save(TASKS_KEY, tasks);
+  render();
+}
+
+function addResearch(){
+  const title = document.getElementById('new-research-title').value.trim();
+  const body = document.getElementById('new-research-body').value.trim();
+  if(!title || !body) return;
+  const research = load(RESEARCH_KEY);
+  research.push({
+    title, body, status: document.getElementById('new-research-status').value,
+    tag: 'investigacion', created: new Date().toISOString(),
+    updated: new Date().toISOString()
+  });
+  save(RESEARCH_KEY, research);
+  document.getElementById('new-research-title').value = '';
+  document.getElementById('new-research-body').value = '';
+  render();
+}
+
+function addMemory(){
+  const tag = document.getElementById('new-memory-tag').value.trim() || 'recordar';
+  const body = document.getElementById('new-memory-body').value.trim();
+  if(!body) return;
+  const memory = load(MEMORY_KEY);
+  memory.push({tag, body, created: new Date().toISOString()});
+  save(MEMORY_KEY, memory);
+  document.getElementById('new-memory-body').value = '';
+  render();
+}
+
+// === SHORTCUTS ===
+document.getElementById('new-task-title').addEventListener('keypress', e=>{
+  if(e.key==='Enter') addTask();
+});
+document.getElementById('new-memory-body').addEventListener('keypress', e=>{
+  if(e.key==='Enter' && !e.shiftKey){ e.preventDefault(); addMemory(); }
+});
+
+// === INIT ===
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+[
+  {"name":"Gold-Swing","detail":"Dashboard trading multi-par","status":"ok","last":""},
+  {"name":"Email-Gmail","detail":"ebagueo@gmail.com","status":"ok","last":""},
+  {"name":"Email-iCloud","detail":"ebagueo@icloud.com","status":"ok","last":""},
+  {"name":"Calendar","detail":"Eventos proximos 48h","status":"ok","last":""},
+  {"name":"Heartbeat","detail":"Checks cada 45 min","status":"ok","last":""},
+  {"name":"Cron-Jobs","detail":"Tareas programadas","status":"ok","last":""}
+]
